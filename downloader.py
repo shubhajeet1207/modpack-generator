@@ -41,6 +41,8 @@ def find_file_id(mc_version: str, soup: BeautifulSoup) -> int:
             latest = list(item.children)[1]
             download_div = list(list(latest.children)[3].children)[1]
             url = list(download_div.children)[1].attrs["href"]
+            if not url.endswith("/download"):
+                url += "/download"
             match = FILE_ID.search(url)
             return int(match.group("file_id"))
 
@@ -75,18 +77,24 @@ def find_dependencies(mc_version: str, old_mod_name: str) -> List[ModInfo]:
 @lru_cache(maxsize=None)
 def download(mc_version: str, mod_name: str, is_dep=False) -> Tuple[Union[ModInfo, None], List[ModInfo]]:
     if not is_dep:
-        print("Downloading:", mod_name)
+        print("Downloading..........:", mod_name)
 
     url = URL.format(mod_name.lower().replace(" ", "-"))
 
-    body = requests.get(url).text
+    resp = requests.get(url)
+
+    if resp.status_code != 200:
+        print("ERROR: Status code while fetching mod", mod_name, "->", resp.status_code)
+        return None, ["403 Error Occured"]
+
+    body = resp.text
 
     soup = BeautifulSoup(body, "lxml")
 
     file_id = find_file_id(mc_version, mod_name, soup)
 
     if file_id is None and is_dep:
-        print("Out of date mod:", mod_name)
+        print("ERROR: Out of date mod:", mod_name)
         return None, []
 
     project_id = find_project_id(soup)
