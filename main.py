@@ -11,7 +11,14 @@ def main():
     mod_objs = []
 
     for mod in mods:
+        file_id = None
+        if "=" in mod:
+            mod, file_id = mod.split("=")
         obj, depends = download(version, mod)
+
+        if file_id is not None:
+            obj.file_id = file_id
+
         for item in [obj, *depends]:
             if item not in mod_objs and item is not None:
                 mod_objs.append(item)
@@ -21,7 +28,7 @@ def main():
     with open("manifest.json", "w") as f:
         json.dump({
             "minecraft": {
-                "version": version.split()[-1],
+                "version": config["mc_version"],
                 "modLoaders": [
                     {
                         "id": "forge-" + config["forge"],

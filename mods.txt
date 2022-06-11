@@ -5,3 +5,4 @@ Ender IO
 Mekanism
 natures aura
 blood magic
+Thermal Dynamics
